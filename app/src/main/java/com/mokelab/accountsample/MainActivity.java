@@ -1,9 +1,15 @@
 package com.mokelab.accountsample;
 
-import android.support.v7.app.AppCompatActivity;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -11,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ButterKnife.inject(this, this);
     }
 
     @Override
@@ -33,5 +41,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @OnClick(R.id.button_get_account)
+    void getAccountClicked() {
+        AccountManager accountManager = AccountManager.get(this);
+        Account[] accounts = accountManager.getAccountsByType("com.mokelab.accountsample");
+        Log.v("accounts", "length=" + accounts.length);
+        for (Account a : accounts) {
+            Log.v("accounts", "name=" + a.name);
+        }
     }
 }
