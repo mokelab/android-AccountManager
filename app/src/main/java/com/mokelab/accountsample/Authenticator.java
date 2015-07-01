@@ -9,16 +9,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.mokelab.accountsample.api.UserAPI;
+import com.mokelab.accountsample.api.UserAPIImpl;
+
 /**
  * Authenticator
  */
 public class Authenticator extends AbstractAccountAuthenticator {
 
+    private static final String TOKEN_TYPE = "com.mokelab.accountsample";
     private final Context mContext;
+    private final UserAPI mUserAPI;
 
     public Authenticator(Context context) {
         super(context);
         mContext = context;
+        mUserAPI = new UserAPIImpl();
     }
 
     @Override
@@ -42,7 +48,40 @@ public class Authenticator extends AbstractAccountAuthenticator {
     }
 
     @Override
-    public Bundle getAuthToken(AccountAuthenticatorResponse accountAuthenticatorResponse, Account account, String s, Bundle bundle) throws NetworkErrorException {
+    public Bundle getAuthToken(final AccountAuthenticatorResponse response, final Account account,
+                               final String authTokenType, Bundle bundle) throws NetworkErrorException {
+        // 1. check authTokenType
+        if (!TOKEN_TYPE.equals(authTokenType)) {
+            Bundle result = new Bundle();
+            result.putString(AccountManager.KEY_ERROR_MESSAGE, "invalid authTokenType");
+            return result;
+        }
+
+        // 2. get password
+        AccountManager accountManager = AccountManager.get(mContext);
+        String password = accountManager.getPassword(account);
+        if (password == null) {
+            Intent it = LoginActivity.createAuthIntent(mContext, response, account, authTokenType);
+            Bundle result = new Bundle();
+            result.putParcelable(AccountManager.KEY_INTENT, it);
+            return bundle;
+        }
+        // 3. get token
+        mUserAPI.login(account.name, password, new UserAPI.GetTokenListener() {
+            @Override
+            public void onSuccess(String token) {
+                Bundle result = new Bundle();
+                result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
+                result.putString(AccountManager.KEY_ACCOUNT_TYPE, "com.mokelab.accountsample");
+                result.putString(AccountManager.KEY_AUTHTOKEN, token);
+                response.onResult(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                response.onError(1, "Failed to get token");
+            }
+        });
         return null;
     }
 
