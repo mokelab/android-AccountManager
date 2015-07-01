@@ -2,6 +2,10 @@ package com.mokelab.accountsample;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.io.IOException;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -57,10 +63,33 @@ public class MainActivity extends AppCompatActivity {
             String type = data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
 
             Log.v("ChooseAccount", "name=" + name + " / type=" + type);
+            requestToken(name, type);
             return;
         }
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void requestToken(String name, String type) {
+        Account account = new Account(name, type);
+        AccountManager manager = AccountManager.get(this);
+        manager.getAuthToken(account, "com.mokelab.accountsample", null, this, new AccountManagerCallback<Bundle>() {
+            @Override
+            public void run(AccountManagerFuture<Bundle> accountManagerFuture) {
+                try {
+                    Bundle result = accountManagerFuture.getResult();
+                    String token = result.getString(AccountManager.KEY_AUTHTOKEN);
+
+                    Log.v("getToken", "token=" + token);
+                } catch (OperationCanceledException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (AuthenticatorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, null);
     }
 
     @OnClick(R.id.button_get_account)
