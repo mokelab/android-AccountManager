@@ -51,6 +51,11 @@
                        android:resource="@xml/syncadapter" />
         </service>
 
+        <provider
+            android:authorities="com.mokelab.sync.provider"
+            android:name=".content.DataProvider"
+            android:exported="false"
+            android:syncable="true"/>
     </application>
 
 </manifest>
