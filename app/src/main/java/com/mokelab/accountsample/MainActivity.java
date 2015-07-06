@@ -63,7 +63,12 @@ public class MainActivity extends AppCompatActivity {
             String type = data.getStringExtra(AccountManager.KEY_ACCOUNT_TYPE);
 
             Log.v("ChooseAccount", "name=" + name + " / type=" + type);
-            requestToken(name, type);
+            // requestToken(name, type);
+
+            // show list page
+            Intent it = MemoListActivity.createIntent(this, name);
+            startActivity(it);
+            finish();
             return;
         }
         }
