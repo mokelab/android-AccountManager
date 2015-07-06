@@ -42,8 +42,13 @@ public class DataProvider extends ContentProvider {
     }
 
     @Override
-    public Cursor query(Uri uri, String[] strings, String s, String[] strings1, String s1) {
-        return null;
+    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        Cursor c = null;
+        switch (sUriMatcher.match(uri)) {
+        case TYPE_MEMO_LIST:
+            c = queryMemoList(uri, projection, selection, selectionArgs, sortOrder);
+        }
+        return c;
     }
 
     @Override
@@ -86,6 +91,12 @@ public class DataProvider extends ContentProvider {
         long id = mDAO.create(userId, "", memo);
 
         return Uri.parse("content://" + AUTHORITY + "/users/" + userId + "/memos/local/" + id);
+    }
+
+    private Cursor queryMemoList(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        String userId = uri.getPathSegments().get(1); // 0: "users", 1:userId, 2:"memos"
+
+        return mDAO.query(userId, projection, selection, selectionArgs, sortOrder);
     }
 
     // endregion

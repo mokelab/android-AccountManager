@@ -1,9 +1,11 @@
 package com.mokelab.accountsample.content;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 /**
  * Implementation
@@ -44,5 +46,24 @@ public class DataDAOImpl implements DataDAO {
         long id = db.insert(TABLE_NAME, null, values);
         db.close();
         return id;
+    }
+
+    @Override
+    public Cursor query(String userId, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        // add userId selection
+        String[] args;
+        if (TextUtils.isEmpty(selection)) {
+            selection = Columns.USER_NAME + "=?";
+            args = new String[] { userId };
+        } else {
+            selection += "AND " + Columns.USER_NAME + "=?";
+            args = new String[selectionArgs.length + 1];
+            System.arraycopy(selectionArgs, 0, args, 0, selectionArgs.length);
+            args[args.length - 1] = userId;
+        }
+        SQLiteDatabase db = mHelper.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_NAME, projection, selection, args, null, null, sortOrder);
+        db.close();
+        return cursor;
     }
 }
