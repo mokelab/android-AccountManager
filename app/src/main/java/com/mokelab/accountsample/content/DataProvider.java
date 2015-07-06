@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * ContentProvider
@@ -12,7 +13,7 @@ import android.net.Uri;
 public class DataProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher;
 
-    private static final String AUTHORITY = "com.mokelab.sync.provider";
+    private static final String AUTHORITY = "com.mokelab.memo.provider";
 
     private static final int TYPE_MEMO_LIST = 1;
     private static final int TYPE_MEMO_BY_SERVER = 2;
@@ -90,13 +91,19 @@ public class DataProvider extends ContentProvider {
         String memo = contentValues.getAsString(FIELD_MEMO);
         long id = mDAO.create(userId, "", memo);
 
+        // notify
+        Uri notifyUri = Uri.parse("content://" + AUTHORITY + "/users/" + userId + "/memos");
+        getContext().getContentResolver().notifyChange(notifyUri, null);
+
         return Uri.parse("content://" + AUTHORITY + "/users/" + userId + "/memos/local/" + id);
     }
 
     private Cursor queryMemoList(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         String userId = uri.getPathSegments().get(1); // 0: "users", 1:userId, 2:"memos"
 
-        return mDAO.query(userId, projection, selection, selectionArgs, sortOrder);
+        Cursor cursor = mDAO.query(userId, projection, selection, selectionArgs, sortOrder);
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        return cursor;
     }
 
     // endregion

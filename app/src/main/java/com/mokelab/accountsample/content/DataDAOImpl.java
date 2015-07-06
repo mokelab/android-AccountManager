@@ -26,9 +26,11 @@ public class DataDAOImpl implements DataDAO {
             Columns.MEMO + " text)";
 
     private final SQLiteOpenHelper mHelper;
+    private final SQLiteDatabase mDB;
 
     public DataDAOImpl(SQLiteOpenHelper helper) {
         mHelper = helper;
+        mDB = mHelper.getWritableDatabase();
     }
 
     static void createDB(SQLiteDatabase db) {
@@ -37,15 +39,12 @@ public class DataDAOImpl implements DataDAO {
 
     @Override
     public long create(String userId, String serverId, String memo) {
-        SQLiteDatabase db = mHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(Columns.USER_NAME, userId);
         values.put(Columns.SERVER_ID, serverId);
         values.put(Columns.MEMO, memo);
 
-        long id = db.insert(TABLE_NAME, null, values);
-        db.close();
-        return id;
+        return mDB.insert(TABLE_NAME, null, values);
     }
 
     @Override
@@ -61,9 +60,6 @@ public class DataDAOImpl implements DataDAO {
             System.arraycopy(selectionArgs, 0, args, 0, selectionArgs.length);
             args[args.length - 1] = userId;
         }
-        SQLiteDatabase db = mHelper.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, projection, selection, args, null, null, sortOrder);
-        db.close();
-        return cursor;
+        return mDB.query(TABLE_NAME, projection, selection, args, null, null, sortOrder);
     }
 }
